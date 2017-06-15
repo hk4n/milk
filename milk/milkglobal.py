@@ -1,0 +1,4 @@
+
+class MilkGlobal:
+    g = {}
+    pass
