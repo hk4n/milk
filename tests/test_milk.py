@@ -49,8 +49,8 @@ def test_parsed_create_copy_start_copy_flow():
     extra_hosts:
         sut: "{{ sut.inspect.NetworkSettings.IPAddress }}"
         example: 10.0.0.1
-    command: ["ls", "-la", "/tests"]
-    #command: ["ping", "-c", "5", "sut"]
+    #command: ["ls", "-la", "/tests"]
+    command: ["ping", "-c", "5", "sut"]
     working_dir: /
 
 - follow: te

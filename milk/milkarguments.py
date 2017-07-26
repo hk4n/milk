@@ -17,9 +17,6 @@ class MilkArguments(MilkBase):
 
         option = []
 
-        import pprint
-        pprint.pprint(kwargs)
-
         if "short_option" in kwargs:
             option.append(kwargs["short_option"])
             del kwargs["short_option"]

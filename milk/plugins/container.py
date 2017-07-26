@@ -1,22 +1,23 @@
-from ..milkbase import MilkBase
-from ..milktemplate import MilkTemplate
+from milk.milktemplate import MilkTemplate
+from milk.plugin import Plugin
 import docker
 import tarfile
 import io
 import time
 import os
+import logging
 
 
-class container(MilkBase):
+class container(Plugin):
     live_containers = {}
     client = None
 
-    def __init__(self, name):
+    def __init__(self, config):
         if self.client is None:
             self.client = docker.from_env(version='auto')
-        self.name = name
 
-    def execute(self, config):
+        self.name = config["container"]
+
         if "image" not in config:
             raise Exception("'image' is missing")
         if "create" not in config:
@@ -42,10 +43,9 @@ class container(MilkBase):
     def run(self, image, command=None, **kwargs):
 
         if "detach" in kwargs and kwargs["detach"]:
-            print("running container detached!")
+            logging.debug("running container detached!")
 
-        c = self.client.containers.run(image, command, **kwargs)
-        print(type(c))
+        self.client.containers.run(image, command, **kwargs)
 
     def start(self):
         return self.containerObject.start()
@@ -58,43 +58,6 @@ class container(MilkBase):
                     kwargs["extra_hosts"][key] = template.render(value)
 
         return self.client.containers.create(image, command, **kwargs)
-
-    def remove(self, config):
-        if type(config) is dict:
-            name = config["name"]
-            print("removing: %s" % name)
-            del config["name"]
-            del config["remove"]
-            return self.live_containers[name].containerObject.remove(**config)
-
-    # todo, implement exclude and regexp copy
-    def copy_from(self, config):
-        name = config["copy_from"]
-        src = config["src"]
-        dest = config["dest"]
-
-        response, info = self.live_containers[name].containerObject.get_archive(src)
-
-        tarinfo = tarfile.TarInfo(info['name'])
-        tarinfo.size = info['size']
-        tarinfo.mtime = info['mtime']
-        tarinfo.mode = info['mode']
-
-        tar = tarfile.TarFile(fileobj=io.BytesIO(response.data), tarinfo=tarinfo)
-
-        if dest.endswith("/"):
-            print("copy_from isdir")
-            tar.extractall(path=dest)
-        else:
-            print("copy_from: %s to %s" % (src, dest))
-
-            path = os.path.dirname(dest)
-            if not os.path.isdir(path):
-                os.makedirs(path)
-
-            fs = tar.extractfile(tarinfo)
-            with open(dest, "wb") as f:
-                f.write(fs.read())
 
     # this will only copy one file at a time
     # there are two reasons for that, one is to try not to run out of memory
@@ -152,8 +115,60 @@ class container(MilkBase):
         with create_archive(src, dest) as archive:
             self.containerObject.put_archive(path=path, data=archive)
 
+
+class follow(Plugin):
+    def __init__(self, config):
+        self.follow(config["follow"])
+
     def follow(self, name):
         import sys
-        for line in self.live_containers[name].containerObject.logs(stream=True, follow=True):
+        for line in self.milkglobals[name].containerObject.logs(stream=True, follow=True):
             sys.stdout.writelines(line.decode("utf-8"))
             sys.stdout.flush()
+
+
+class remove(Plugin):
+    def __init__(self, config):
+        self.remove(config)
+
+    def remove(self, config):
+        if type(config) is dict:
+            name = config["name"]
+            logging.debug("removing: %s" % name)
+            del config["name"]
+            del config["remove"]
+            return self.milkglobals[name].containerObject.remove(**config)
+
+
+class copy_from(Plugin):
+    def __init__(self, config):
+        self.copy_from(config)
+
+    # todo, implement exclude and regexp copy
+    def copy_from(self, config):
+        name = config["copy_from"]
+        src = config["src"]
+        dest = config["dest"]
+
+        response, info = self.milkglobals[name].containerObject.get_archive(src)
+
+        tarinfo = tarfile.TarInfo(info['name'])
+        tarinfo.size = info['size']
+        tarinfo.mtime = info['mtime']
+        tarinfo.mode = info['mode']
+
+        tar = tarfile.TarFile(fileobj=io.BytesIO(response.data), tarinfo=tarinfo)
+
+        if dest.endswith("/"):
+            logging.debug("copy_from isdir")
+            tar.extractall(path=dest)
+        else:
+            logging.debug("copy_from: %s to %s" % (src, dest))
+
+            path = os.path.dirname(dest)
+            if not os.path.isdir(path):
+                os.makedirs(path)
+
+            fs = tar.extractfile(tarinfo)
+            with open(dest, "wb") as f:
+                f.write(fs.read())

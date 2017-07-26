@@ -1,6 +1,8 @@
 import yaml
+import os
+import logging
 from .milkarguments import MilkArguments
-from .plugins.container import container
+from .pluginloader import PluginLoader
 
 
 class Milk:
@@ -8,6 +10,10 @@ class Milk:
 
         parser = MilkArguments(arguments=arguments)
 
+        # load plugins from default location
+        plugins = PluginLoader(os.path.join(os.path.dirname(__file__), "plugins"), level=logging.DEBUG)
+
+        # parse the yaml config file
         if config:
             self.parsed = yaml.load(config)
         else:
@@ -20,26 +26,34 @@ class Milk:
         pprint.pprint(self.parsed)
 
         # parse arguments
-        i = 0
         for item in list(self.parsed):
             if "argument" in item:
                 parser.add_argument(**item["argument"])
-                i += 1
 
         # parse user defined arguments
         parser.parse_args()
 
+        # load plugins from current working dir
+        # plugins.find_plugins_folder()
+        # plugins.load_plugins()
+
+        # load plugins from supplied path in config file
+        for item in self.parsed:
+            if "config" in item and "plugin_path" in item:
+                plugins.load_plugins(item["plugin_path"])
+                break
+
         # parse container flow
         for item in self.parsed:
+
             if "container" in item:
-                c = container(item["container"])
-                c.execute(item)
+                plugins.get_class("container")(item)
 
             if "follow" in item:
-                container('tmp').follow(item["follow"])
+                plugins.get_class("follow")(item)
 
             if "remove" in item:
-                container('tmp').remove(item)
+                plugins.get_class("remove")(item)
 
             if "copy_from" in item:
-                container('tmp').copy_from(item)
+                plugins.get_class("copy_from")(item)
