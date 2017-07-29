@@ -16,7 +16,7 @@ class container(Plugin):
         if self.client is None:
             self.client = docker.from_env(version='auto')
 
-        self.name = config["container"]
+        self.name = config["name"]
 
         if "image" not in config:
             raise Exception("'image' is missing")
@@ -52,10 +52,10 @@ class container(Plugin):
 
     def create(self, image, command, **kwargs):
 
-        if "extra_hosts" in kwargs:
-            for key, value in dict(kwargs["extra_hosts"]).items():
-                    template = MilkTemplate()
-                    kwargs["extra_hosts"][key] = template.render(value)
+#        if "extra_hosts" in kwargs:
+#            for key, value in dict(kwargs["extra_hosts"]).items():
+#                    template = MilkTemplate()
+#                    kwargs["extra_hosts"][key] = template.render(value)
 
         return self.client.containers.create(image, command, **kwargs)
 
@@ -118,7 +118,7 @@ class container(Plugin):
 
 class follow(Plugin):
     def __init__(self, config):
-        self.follow(config["follow"])
+        self.follow(config["name"])
 
     def follow(self, name):
         import sys
@@ -136,7 +136,6 @@ class remove(Plugin):
             name = config["name"]
             logging.debug("removing: %s" % name)
             del config["name"]
-            del config["remove"]
             return self.milkglobals[name].containerObject.remove(**config)
 
 
@@ -146,7 +145,7 @@ class copy_from(Plugin):
 
     # todo, implement exclude and regexp copy
     def copy_from(self, config):
-        name = config["copy_from"]
+        name = config["name"]
         src = config["src"]
         dest = config["dest"]
 
