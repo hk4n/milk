@@ -16,7 +16,7 @@ class Milk:
         parser = MilkArguments(arguments=arguments)
 
         # load plugins from default location
-        plugins = PluginLoader(os.path.join(os.path.dirname(__file__), "plugins"), level=loggingLevel)
+        plugins = PluginLoader(os.path.join(os.path.dirname(__file__), "plugins"), loggingLevel=loggingLevel)
 
         # parse the yaml config file
         if config:
