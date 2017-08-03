@@ -8,9 +8,9 @@ from .plugin import Plugin
 class PluginLoader():
     classes = {}
 
-    def __init__(self, path, level=logging.INFO):
+    def __init__(self, path, loggingLevel=logging.INFO):
         self.path = path
-        logging.basicConfig(level=level)
+        logging.basicConfig(level=loggingLevel)
         self.load_plugins(path)
 
     # this function handles the loading of an module from a file
@@ -26,15 +26,19 @@ class PluginLoader():
         for key in dir(current_module):
             cls = getattr(current_module, key)
 
-            if isinstance(cls, type(Plugin)) and key != "Plugin":
+            if key == "Plugin":
+                continue
+
+            if isinstance(cls, type(Plugin)):
                 classes[key] = cls
                 logging.debug("loaded plugin '%s'" % key)
+
         return classes
 
     def load_plugins(self, path):
         modules = []
         files = os.listdir(path)
-        files = [f for f in files if f.endswith(".py")]
+        files = [f for f in files if f.endswith(".py") and not f.endswith("__init__.py")]
         logging.debug(files)
 
         for f in files:
