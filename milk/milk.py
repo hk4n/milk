@@ -7,12 +7,16 @@ from .pluginloader import PluginLoader
 
 
 class Milk:
-    def __init__(self, arguments=None, config=None):
+    def __init__(self, arguments=None, config=None, loggingLevel=logging.INFO):
 
+        # set logging level, TODO! add support for logging to file
+        logging.basicConfig(level=loggingLevel)
+
+        # create argument parser
         parser = MilkArguments(arguments=arguments)
 
         # load plugins from default location
-        plugins = PluginLoader(os.path.join(os.path.dirname(__file__), "plugins"), level=logging.DEBUG)
+        plugins = PluginLoader(os.path.join(os.path.dirname(__file__), "plugins"), level=loggingLevel)
 
         # parse the yaml config file
         if config:
@@ -20,11 +24,6 @@ class Milk:
         else:
             with open(parser.args.config, "r") as f:
                 self.parsed = yaml.load(f.read())
-
-        # debug print
-        # import pprint
-        # print("\n")
-        # pprint.pprint(self.parsed)
 
         # parse arguments
         for item in list(self.parsed):
@@ -40,9 +39,7 @@ class Milk:
         # parse user defined arguments
         parser.parse_args()
 
-        # load plugins from current working dir
-        # plugins.find_plugins_folder()
-        # plugins.load_plugins()
+        # TODO! load plugins from current working dir
 
         # load plugins from supplied path in config file
         for item in self.parsed:
@@ -59,6 +56,7 @@ class Milk:
             # instantiate the plugin
             plugins.get_class(key)(value)
 
+    # parse the jinja2 code if any
     def jinja(self, item):
         # dict
         if type(item) is dict:

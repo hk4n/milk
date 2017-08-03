@@ -1,4 +1,3 @@
-from milk.milktemplate import MilkTemplate
 from milk.plugin import Plugin
 import docker
 import tarfile
@@ -51,12 +50,6 @@ class container(Plugin):
         return self.containerObject.start()
 
     def create(self, image, command, **kwargs):
-
-#        if "extra_hosts" in kwargs:
-#            for key, value in dict(kwargs["extra_hosts"]).items():
-#                    template = MilkTemplate()
-#                    kwargs["extra_hosts"][key] = template.render(value)
-
         return self.client.containers.create(image, command, **kwargs)
 
     # this will only copy one file at a time
