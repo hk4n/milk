@@ -25,16 +25,23 @@ class Milk:
             with open(parser.args.config, "r") as f:
                 self.parsed = yaml.load(f.read())
 
-        # parse arguments
+
+        # check for arguments and version config
         for item in list(self.parsed):
             if "argument" in item:
                 parser.add_argument(**item["argument"])
+                self.parsed.remove(item)
 
-        i = 0
-        for item in list(self.parsed):
-            if "argument" in item:
-                del self.parsed[i]
-            i = i + 1
+            elif "version" in item:
+                self.configVersion = item["version"]
+                self.parsed.remove(item)
+
+        # verify the config version
+        try:
+            if self.configVersion:
+                pass  # TODO! handle the config version properly
+        except AttributeError:
+            raise NoConfigVersionException()
 
         # parse user defined arguments
         parser.parse_args()
@@ -77,3 +84,7 @@ class Milk:
                 item = template.render(item)
 
         return item
+
+
+class NoConfigVersionException(Exception):
+    pass
