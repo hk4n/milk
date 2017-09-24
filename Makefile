@@ -8,7 +8,10 @@ build:
 	$(DOCKER) build -t ${IMAGE} .
 
 test: build
-	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock $(IMAGE) -e py36 -e py27
+	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock $(IMAGE) -e py36
+
+console: build
+	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /bin/bash $(IMAGE)
 
 pep8: build
 	$(RUN) $(IMAGE) -e flake8
