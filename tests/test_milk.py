@@ -22,9 +22,34 @@ import sys
 #
 
 
+def test_variables(capfd):
+    config = '''
+- version: 1
+
+- argument:
+    long_option: --hello
+    dest: hello
+
+- argument:
+    long_option: --world
+    dest: world
+
+- variables:
+    banan: olle
+
+- debug:
+    text: "{{ banan }}"
+    '''
+
+    Milk(arguments=["--hello", "apa", "--world", "nisse"], config=config)
+    out, err = capfd.readouterr()
+    assert out == "olle\n"
+
+
+# @pytest.mark.skip(reason="no way of currently testing this")
 def test_parsed_create_copy_start_copy_flow():
     config = '''
-
+- version: 1
 - argument:
     long_option: --example
     short_option: -e
