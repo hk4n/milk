@@ -103,7 +103,7 @@ setup(
     long_description="""TBD""",
     entry_points="""
         [console_scripts]
-        milk=milk.run:main
+        milk=milk.main:main
                     """,
     classifiers=[
         # Picked from

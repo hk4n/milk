@@ -1,5 +1,6 @@
 import yaml
 import os
+import sys
 import logging
 from .milkarguments import MilkArguments
 from .milktemplate import MilkTemplate
@@ -22,9 +23,19 @@ class Milk:
         if config:
             self.parsed = yaml.load(config)
         else:
-            with open(parser.args.config, "r") as f:
-                self.parsed = yaml.load(f.read())
+            try:
+                if os.path.isfile(parser.args.config):
 
+                    with open(parser.args.config, "r") as f:
+                        self.parsed = yaml.load(f.read())
+
+                else:
+                    print("No config file found")
+                    sys.exit(1)
+
+            except IOError as e:
+                print("Error: '%s' (%s)" % (e.strerror, parser.args.config))
+                sys.exit(1)
 
         # check for arguments and version config
         for item in list(self.parsed):
