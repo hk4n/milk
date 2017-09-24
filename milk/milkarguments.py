@@ -1,5 +1,6 @@
 from .milkbase import MilkBase
 import argparse
+import logging
 
 
 class MilkArguments(MilkBase):
@@ -41,5 +42,5 @@ class MilkArguments(MilkBase):
             if key == 'config':
                 continue
 
-            print("adding '%s':'%s' to global" % (key, value))
+            logging.debug("adding '%s':'%s' to global" % (key, value))
             self.add_global(key, value)
