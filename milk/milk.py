@@ -9,7 +9,7 @@ from .pluginloader import PluginLoader
 class Milk:
     def __init__(self, arguments=None, config=None, loggingLevel=logging.INFO):
 
-        # set logging level, TODO! add support for logging to file
+        # set logging level, TODO! add support for logging to file and narrow the log printing to Milk and plugins only
         logging.basicConfig(level=loggingLevel)
 
         # create argument parser
@@ -63,8 +63,14 @@ class Milk:
             # instantiate the plugin
             plugins.get_class(key)(value)
 
-    # parse the jinja2 code if any
     def jinja(self, item):
+        """Recursivly parse the jinja2 code if any
+
+        Args:
+            item(any): this will be either and dict or list to recurse on or the value to parse the jinja2 syntax if any
+        Returns:
+            The jinja2 parsed item
+        """
         # dict
         if type(item) is dict:
             for key, value in dict(item).items():
