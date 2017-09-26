@@ -7,10 +7,14 @@ all: build test
 build:
 	$(DOCKER) build -t ${IMAGE} .
 
-test: build
+buildping:
+	$(DOCKER) build -t ping:latest -f tests/Dockerfile.ping .
+
+
+test: build buildping
 	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock $(IMAGE) -e py36
 
-console: build
+console: build buildping
 	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /bin/bash $(IMAGE)
 
 pep8: build
