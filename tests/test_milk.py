@@ -46,7 +46,7 @@ def test_variables(capfd):
     assert out == "olle\n"
 
 
-# @pytest.mark.skip(reason="no way of currently testing this")
+@pytest.mark.skip(reason="no way of currently testing this")
 def test_parsed_create_copy_start_copy_flow():
     config = '''
 - version: 1
@@ -105,26 +105,28 @@ def test_parsed_create_copy_start_copy_flow():
             sys.stdout.flush()
 
 
-@pytest.mark.skip(reason="no way of currently testing this")
+# @pytest.mark.skip(reason="no way of currently testing this")
 def test_copy_from_single_file():
     config = '''
+- version: 1
+- container:
+    name: test
+    image: ping
+    command: 'ls -la /tmp/'
+    copy:
+      src: tests/from.*
+      dest: /tmp
 
-- container: test
-  image: ping
-  create:
-    command: 'ls -la /tmp/tests'
-  copy_to:
-    src: tests/
-    dest: /tmp
+- follow:
+    name: test
 
-- follow: test
-
-- copy_from: test
-  src: /tmp/tests/from.txt
-  dest: tests/tmp/test.txt
+- copy:
+    name: test
+    src: /tmp/from.txt
+    dest: tests/tmp/test.txt
 
 - remove:
-  name: test
+    name: test
 
     '''
 

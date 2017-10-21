@@ -32,7 +32,7 @@ class container(Plugin):
         self.containerObject = self.create(config["image"], **config["advanced"])
 
         if "copy" in config:
-            self.copy_to(**config["copy"])
+            copy.copy_to(self.containerObject, **config["copy"])
 
         self.start()
 
@@ -59,62 +59,6 @@ class container(Plugin):
     def create(self, image, command, **kwargs):
         return self.client.containers.create(image, command, **kwargs)
 
-    # this will only copy one file at a time
-    # there are two reasons for that, one is to try not to run out of memory
-    # the other is that I'm lazy and didnt implement the copy of folders
-    #
-    # todo, implement exclude ,regexp copy and copy of folders
-    # the file mode is not preserved, this needs to be fixed
-    def copy_to(self, src, dest):
-        path = "/"
-
-        def create_archive(src, dest):
-
-            if os.path.isdir(src):
-                sourcefiles = []
-
-                def recurse_dir(src, sf=[]):
-                    from os import listdir
-                    from os.path import isfile, join, isdir
-
-                    for f in listdir(src):
-                        if isfile(join(src, f)):
-                            sf += [join(src, f)]
-                        elif isdir(join(src, f)):
-                            sf += recurse_dir(join(src, f), sf)
-
-                    return sf
-
-                sourcefiles = recurse_dir(src)
-
-            else:
-                sourcefiles = [src]
-
-            tarstream = io.BytesIO()
-            tar = tarfile.TarFile(fileobj=tarstream, mode='w')
-
-            for source in sourcefiles:
-                with open(source, 'rb') as f:
-                    file_data = f.read()
-
-                    tarinfo = tarfile.TarInfo(name=os.path.join(dest, source))
-                    tarinfo.size = len(file_data)
-                    tarinfo.mtime = time.time()
-
-                    # calculate file mode
-                    mode = oct(os.stat(source).st_mode & int('777', 8))
-                    tarinfo.mode = int(mode, 8)
-
-                    tar.addfile(tarinfo, io.BytesIO(file_data))
-
-            # close the tar object and rewind the stream
-            tar.close()
-            tarstream.seek(0)
-            return tarstream
-
-        with create_archive(src, dest) as archive:
-            self.containerObject.put_archive(path=path, data=archive)
-
 
 class follow(Plugin):
     def __init__(self, config):
@@ -139,11 +83,12 @@ class remove(Plugin):
             return self.milkglobals[name].containerObject.remove(**config)
 
 
-class copy_from(Plugin):
+class copy(Plugin):
     def __init__(self, config):
         self.copy_from(config)
 
-    # todo, implement exclude and regexp copy
+    # TODO! implement exclude and regexp copy
+    # TODO! implement support to copy from one container into another with syntax from id1:src to id2:dest
     def copy_from(self, config):
         name = config["name"]
         src = config["src"]
@@ -172,6 +117,52 @@ class copy_from(Plugin):
             with open(dest, "wb") as f:
                 f.write(fs.read())
 
+    # TODO!, implement exclude
+    # TODO! implement support to copy from one container into containerObject with syntax from id1:src to dest
+    def copy_to(containerObject, src, dest):
+        path = "/"
 
-class copy(copy_from):
-    pass
+        def create_archive(src, dest):
+
+            sourcefiles = []
+
+            # add wildcard string to src string if identified as a directory
+            if os.path.isdir(src):
+                src = os.path.join(src, "**/*")
+
+            import glob
+            tmpfiles = glob.glob(src, recursive=True)
+            for source in tmpfiles:
+                if os.path.isdir(source):
+                    continue
+                else:
+                    sourcefiles += [source]
+
+            tarstream = io.BytesIO()
+            tar = tarfile.TarFile(fileobj=tarstream, mode='w')
+
+            for source in sourcefiles:
+
+                # make sure we do not add the "basename" from src to the tar content
+                stripme = src.split(os.path.basename(src))[0]
+
+                with open(source, 'rb') as f:
+                    file_data = f.read()
+
+                    tarinfo = tarfile.TarInfo(name=os.path.join(dest, source[len(stripme):]))
+                    tarinfo.size = len(file_data)
+                    tarinfo.mtime = time.time()
+
+                    # preserv file mode
+                    mode = oct(os.stat(source).st_mode & int('777', 8))
+                    tarinfo.mode = int(mode, 8)
+
+                    tar.addfile(tarinfo, io.BytesIO(file_data))
+
+            # close the tar object and rewind the stream
+            tar.close()
+            tarstream.seek(0)
+            return tarstream
+
+        with create_archive(src, dest) as archive:
+            containerObject.put_archive(path=path, data=archive)
