@@ -46,7 +46,7 @@ def test_variables(capfd):
     assert out == "olle\n"
 
 
-@pytest.mark.skip(reason="no way of currently testing this")
+# @pytest.mark.skip(reason="no way of currently testing this")
 def test_parsed_create_copy_start_copy_flow():
     config = '''
 - version: 1
@@ -70,7 +70,7 @@ def test_parsed_create_copy_start_copy_flow():
 
     copy:
       src: "tests/from.txt"
-      dest: "/"
+      dest: "/tests/"
 
     advanced:
       extra_hosts:
