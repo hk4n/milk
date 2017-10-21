@@ -19,13 +19,20 @@ class container(Plugin):
 
         if "image" not in config:
             raise Exception("'image' is missing")
-        if "create" not in config:
-            raise Exception("'create' is missing")
 
-        self.containerObject = self.create(config["image"], **config["create"])
+        if "advanced" not in config:
+            config["advanced"] = {}
 
-        if "copy_to" in config:
-            self.copy_to(**config["copy_to"])
+        # adding optional settings to advanced
+        for arg in ["command", "detach"]:
+            if arg in config:
+                config["advanced"][arg] = config[arg]
+
+        # create the container
+        self.containerObject = self.create(config["image"], **config["advanced"])
+
+        if "copy" in config:
+            self.copy_to(**config["copy"])
 
         self.start()
 
@@ -164,3 +171,7 @@ class copy_from(Plugin):
             fs = tar.extractfile(tarinfo)
             with open(dest, "wb") as f:
                 f.write(fs.read())
+
+
+class copy(copy_from):
+    pass

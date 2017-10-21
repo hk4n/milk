@@ -60,25 +60,23 @@ def test_parsed_create_copy_start_copy_flow():
 - container:
     name: sut
     image: "ubuntu:16.04"
-
-    create:
-      command: "sleep 30"
-      detach: True
+    command: "sleep 30"
+    detach: True
 
 - container:
     name: te
     image: "ping"
+    command: ["ping", "-c", "5", "sut"]
 
-    copy_to:
+    copy:
       src: "tests/from.txt"
       dest: "/"
 
-    create:
+    advanced:
       extra_hosts:
           sut: "{{ sut.inspect.NetworkSettings.IPAddress }}"
           example: 10.0.0.1
       #command: ["ls", "-la", "/tests"]
-      command: ["ping", "-c", "5", "sut"]
       working_dir: /
 
 - follow:
@@ -87,7 +85,7 @@ def test_parsed_create_copy_start_copy_flow():
 - follow:
     name: sut
 
-- copy_from:
+- copy:
     name: te
     src: "/tests/from.txt"
     dest: "tests/banan.txt"
