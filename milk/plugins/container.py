@@ -98,24 +98,36 @@ class copy(Plugin):
 
         tarinfo = tarfile.TarInfo(info['name'])
         tarinfo.size = info['size']
-        tarinfo.mtime = info['mtime']
         tarinfo.mode = info['mode']
+
+        # convert mtime to epoch integer
+        # output format date string from get_archive: 2017-10-22T00:16:34+02:00
+        from datetime import datetime
+        mtime = info['mtime'][::-1].replace(":", "", 1)[::-1]
+        mtime = int(datetime.strptime(mtime, "%Y-%m-%dT%H:%M:%S%z").strftime('%s'))
+        tarinfo.mtime = mtime
 
         tar = tarfile.TarFile(fileobj=io.BytesIO(response.data), tarinfo=tarinfo)
 
+        # make sure the destination folders exists
+        path = os.path.dirname(dest)
+
+        if not os.path.isdir(path):
+            os.makedirs(path)
+
+        # extract the file/files
         if dest.endswith("/"):
-            logging.debug("copy_from isdir")
+            logging.debug("copy_from isdir: extracts whole tar to dest")
             tar.extractall(path=dest)
         else:
             logging.debug("copy_from: %s to %s" % (src, dest))
 
-            path = os.path.dirname(dest)
-            if not os.path.isdir(path):
-                os.makedirs(path)
+            # the extractfile and extract functions in tarfile does not work properly,
+            # so for now we use extractall and rename the file afterwards
+            destsrc = os.path.join(path, os.path.basename(src))
 
-            fs = tar.extractfile(tarinfo)
-            with open(dest, "wb") as f:
-                f.write(fs.read())
+            tar.extractall(path=path)
+            os.rename(destsrc, dest)
 
     # TODO!, implement exclude
     # TODO! implement support to copy from one container into containerObject with syntax from id1:src to dest
