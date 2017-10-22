@@ -1,38 +1,47 @@
 from milk.milk import Milk
 import pytest
-import sys
 
-# def test_run_container():
+# to disable tests add this:
+# @pytest.mark.skip(reason="no way of currently testing this")
 
-#     config = '''
-# - container: sut
-#   run:
-#     image: "hello-world"
-#     '''
-#
-#     m = Milk(config)
-#
-#     # mc = MilkDocker()
-#     # mc.run(**m.parsed[0]["run"])
 
-# def test_printpwd():
-#     import os
-#     print(os.getcwd())
-#
-#
+def test_short_arguments(capfd):
+    config = '''
+- version: 1
+
+- argument:
+    short_option: -z
+    dest: zeta
+
+- debug:
+    text: "{{ zeta }}"
+    '''
+
+    Milk(arguments=["-z", "olle"], config=config)
+    out, err = capfd.readouterr()
+    assert out == "olle\n"
+
+
+def test_long_arguments(capfd):
+    config = '''
+- version: 1
+
+- argument:
+    long_option: --zeta
+    dest: zeta
+
+- debug:
+    text: "{{ zeta }}"
+    '''
+
+    Milk(arguments=["--zeta", "nisse"], config=config)
+    out, err = capfd.readouterr()
+    assert out == "nisse\n"
 
 
 def test_variables(capfd):
     config = '''
 - version: 1
-
-- argument:
-    long_option: --hello
-    dest: hello
-
-- argument:
-    long_option: --world
-    dest: world
 
 - variables:
     banan: olle
@@ -41,13 +50,12 @@ def test_variables(capfd):
     text: "{{ banan }}"
     '''
 
-    Milk(arguments=["--hello", "apa", "--world", "nisse"], config=config)
+    Milk(arguments=[], config=config)
     out, err = capfd.readouterr()
     assert out == "olle\n"
 
 
-# @pytest.mark.skip(reason="no way of currently testing this")
-def test_parsed_create_copy_start_copy_flow():
+def test_ping_from_container(capfd):
     config = '''
 - version: 1
 - argument:
@@ -58,55 +66,39 @@ def test_parsed_create_copy_start_copy_flow():
     required: False
 
 - container:
-    name: sut
+    name: to
     image: "ubuntu:16.04"
     command: "sleep 30"
     detach: True
 
 - container:
-    name: te
+    name: from
     image: "ping"
-    command: ["ping", "-c", "5", "sut"]
-
-    copy:
-      src: "tests/from.txt"
-      dest: "/tests/"
+    command: ["ping", "-c", "5", "to"]
 
     advanced:
       extra_hosts:
-          sut: "{{ sut.inspect.NetworkSettings.IPAddress }}"
-          example: 10.0.0.1
-      #command: ["ls", "-la", "/tests"]
+          to: "{{ to.inspect.NetworkSettings.IPAddress }}"
+          example: "{{ example }}"
       working_dir: /
 
 - follow:
-    name: te
-
-- follow:
-    name: sut
-
-- copy:
-    name: te
-    src: "/tests/from.txt"
-    dest: "tests/banan.txt"
+    name: from
 
 - remove:
-    name: te
+    name: from
 
 - remove:
-    name: sut
+    name: to
     force: True
     '''
-    Milk(arguments=["--example", "banan"], config=config)
+    Milk(arguments=["--example", "10.0.0.1"], config=config)
 
-    with open("tests/banan.txt", "r") as f:
-        for line in f:
-            sys.stdout.write(line)
-            sys.stdout.flush()
+    out, err = capfd.readouterr()
+    assert "5 packets transmitted, 5 packets received, 0% packet loss" in out
 
 
-# @pytest.mark.skip(reason="no way of currently testing this")
-def test_copy_from_single_file():
+def test_copy_from_single_file(capfd):
     config = '''
 - version: 1
 - container:
@@ -132,7 +124,11 @@ def test_copy_from_single_file():
 
     Milk(arguments=[], config=config)
 
-    with open("tests/tmp/test.txt", "r") as f:
-        for line in f:
-            sys.stdout.write(line)
-            sys.stdout.flush()
+    out, err = capfd.readouterr()
+
+    # check if the file was copied to the container
+    assert "from.txt" in out
+
+    # compare file content
+    import filecmp
+    assert filecmp.cmp("tests/tmp/test.txt", "tests/from.txt", shallow=False)
