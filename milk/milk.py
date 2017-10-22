@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 from .milkarguments import MilkArguments
+from .milkbase import MilkBase
 from .milktemplate import MilkTemplate
 from .pluginloader import PluginLoader
 
@@ -12,6 +13,9 @@ class Milk:
 
         # set logging level, TODO! add support for logging to file and narrow the log printing to Milk and plugins only
         logging.basicConfig(level=loggingLevel)
+
+        with MilkBase() as m:
+            m.initialize()
 
         # create argument parser
         parser = MilkArguments(arguments=arguments)
@@ -71,6 +75,7 @@ class Milk:
 
             # run jinja on the value variable
             value = self.jinja(value)
+
             # instantiate the plugin
             plugins.get_class(key)(value)
 

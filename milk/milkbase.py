@@ -2,10 +2,19 @@
 class MilkBase:
     milkglobals = {}
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+    def initialize(self):
+        MilkBase.milkglobals = {}
+
     def add_global(self, key, value):
 
             if key in self.milkglobals:
-                raise Exception("Key '%s' already exists, overwriting is not an option!")
+                raise Exception("Key '%s' already exists, overwriting is not an option!" % key)
 
             self.milkglobals[key] = value
 
