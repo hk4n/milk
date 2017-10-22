@@ -99,19 +99,13 @@ class copy(Plugin):
         tarinfo = tarfile.TarInfo(info['name'])
         tarinfo.size = info['size']
         tarinfo.mode = info['mode']
-
-        # convert mtime to epoch integer
-        # output format date string from get_archive: 2017-10-22T00:16:34+02:00
-        from datetime import datetime
-        mtime = info['mtime'][::-1].replace(":", "", 1)[::-1]
-        mtime = int(datetime.strptime(mtime, "%Y-%m-%dT%H:%M:%S%z").strftime('%s'))
-        tarinfo.mtime = mtime
+        tarinfo.mtime = info['mtime']
 
         tar = tarfile.TarFile(fileobj=io.BytesIO(response.data), tarinfo=tarinfo)
 
-        # make sure the destination folders exists
         path = os.path.dirname(dest)
 
+        # make sure the destination folders exists
         if not os.path.isdir(path):
             os.makedirs(path)
 
@@ -131,6 +125,7 @@ class copy(Plugin):
 
     # TODO!, implement exclude
     # TODO! implement support to copy from one container into containerObject with syntax from id1:src to dest
+    @staticmethod
     def copy_to(containerObject, src, dest):
         path = "/"
 
@@ -142,8 +137,8 @@ class copy(Plugin):
             if os.path.isdir(src):
                 src = os.path.join(src, "**/*")
 
-            import glob
-            tmpfiles = glob.glob(src, recursive=True)
+            import glob2
+            tmpfiles = glob2.glob(src, recursive=True)
             for source in tmpfiles:
                 if os.path.isdir(source):
                     continue
