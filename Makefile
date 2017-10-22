@@ -12,7 +12,7 @@ buildping:
 
 
 test: build buildping
-	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock $(IMAGE) -e py36
+	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock $(IMAGE)
 
 console: build buildping
 	$(RUN) -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /bin/bash $(IMAGE)
