@@ -1,7 +1,7 @@
 from milk.milk import Milk
-import pytest
 
-# to disable tests add this:
+# to disable tests use this:
+# import pytest
 # @pytest.mark.skip(reason="no way of currently testing this")
 
 
