@@ -1,8 +1,70 @@
 from milk.milk import Milk
 
+import os
+
 # to disable tests use this:
 # import pytest
 # @pytest.mark.skip(reason="no way of currently testing this")
+
+
+def test_version_config(capfd):
+    config = '''
+- version: 1
+
+- debug:
+    text: "{{ milk.config.version }}"
+    '''
+
+    Milk(arguments=[], config=config)
+    out, err = capfd.readouterr()
+    assert out == "1\n"
+
+
+def test_copy_from_host_to_from_from_to_to_to_to_host():
+    config = '''
+- version: 1
+
+- container:
+    name: to
+    image: "ubuntu:16.04"
+    command: "sleep 300"
+    detach: True
+
+- container:
+    name: from
+    image: "ping"
+    command: "sleep 300"
+    detach: True
+
+    copy:
+      src: tests/from.*
+      dest: /tmp/
+
+- copy:
+    src: from:/tmp/from.txt
+    dest: to:/tmp/
+
+- copy:
+    src: to:/tmp/from.txt
+    dest: tests/from_to.txt
+
+- remove:
+    name: from
+    force: True
+
+- remove:
+    name: to
+    force: True
+
+    '''
+
+    Milk(arguments=[], config=config)
+
+    assert os.path.isfile("tests/from_to.txt")
+
+    # compare file content
+    import filecmp
+    assert filecmp.cmp("tests/from_to.txt", "tests/from.txt", shallow=False)
 
 
 def test_short_arguments(capfd):
@@ -98,7 +160,7 @@ def test_ping_from_container(capfd):
     assert "5 packets transmitted, 5 packets received, 0% packet loss" in out
 
 
-def test_copy_from_single_file(capfd):
+def test_copy_single_file_from_container(capfd):
     config = '''
 - version: 1
 - container:
@@ -113,8 +175,7 @@ def test_copy_from_single_file(capfd):
     name: test
 
 - copy:
-    name: test
-    src: /tmp/from.txt
+    src: test:/tmp/from.txt
     dest: tests/tmp/test.txt
 
 - remove:

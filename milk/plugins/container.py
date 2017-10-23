@@ -5,10 +5,10 @@ import io
 import time
 import os
 import logging
+import tempfile
 
 
 class container(Plugin):
-    live_containers = {}
     client = None
 
     def __init__(self, config):
@@ -30,9 +30,16 @@ class container(Plugin):
 
         # create the container
         self.containerObject = self.create(config["image"], **config["advanced"])
+        self.add_global(self.name, self)
 
         if "copy" in config:
-            copy.copy_to(self.containerObject, **config["copy"])
+            if ':' in config["copy"]["dest"]:
+                raise Exception("Currently container copy is only supported in src")
+
+            if ':' not in config["copy"]["dest"]:
+                config["copy"]["dest"] = "%s:%s" % (self.name, config["copy"]["dest"])
+
+            copy(config["copy"])
 
         self.start()
 
@@ -41,10 +48,6 @@ class container(Plugin):
         while self.inspect["NetworkSettings"]["IPAddress"] == '':
             self.containerObject.reload()
             self.inspect = self.containerObject.attrs
-
-        # store
-        self.live_containers[self.name] = self
-        self.add_global(self.name, self)
 
     def run(self, image, command=None, **kwargs):
 
@@ -85,16 +88,63 @@ class remove(Plugin):
 
 class copy(Plugin):
     def __init__(self, config):
-        self.copy_from(config)
+
+        if self.get_global("milk")["config"]["version"] >= 1:
+            # copy between containers support here
+
+            # parse src
+            srcContainer = ""
+            src = config["src"]
+            if ":" in src:
+                srcContainer, src = src.split(":")
+
+            # parse dest
+            destContainer = ""
+            dest = config["dest"]
+            if ":" in dest:
+                destContainer, dest = dest.split(":")
+
+            if srcContainer and destContainer:
+                # copy between containers
+                srcContainerObject = self.milkglobals[srcContainer].containerObject
+                destContainerObject = self.milkglobals[destContainer].containerObject
+
+                tmpSrcPath = tempfile.mkdtemp()
+
+                if src.startswith("/"):
+                    newsrc = src[1:]
+
+                newdest = os.path.dirname(os.path.join(tmpSrcPath, newsrc)) + "/"
+
+                self.copy_from(srcContainerObject, src, newdest)
+
+                newsrc = os.path.join(tmpSrcPath, newsrc)
+
+                self.copy_to(destContainerObject, newsrc, dest)
+
+                import shutil
+                shutil.rmtree(tmpSrcPath)
+
+            elif srcContainer:
+                # copy from container to host
+                srcContainerObject = self.milkglobals[srcContainer].containerObject
+
+                self.copy_from(srcContainerObject, src, dest)
+
+            elif destContainer:
+                # copy from host to container
+                destContainerObject = self.milkglobals[destContainer].containerObject
+
+                self.copy_to(destContainerObject, src, dest)
+
+            else:
+                raise Exception("You cant right now copy host to host")
 
     # TODO! implement exclude and regexp copy
     # TODO! implement support to copy from one container into another with syntax from id1:src to id2:dest
-    def copy_from(self, config):
-        name = config["name"]
-        src = config["src"]
-        dest = config["dest"]
+    def copy_from(self, containerObject, src, dest):
 
-        response, info = self.milkglobals[name].containerObject.get_archive(src)
+        response, info = containerObject.get_archive(src)
 
         tarinfo = tarfile.TarInfo(info['name'])
         tarinfo.size = info['size']
@@ -118,10 +168,15 @@ class copy(Plugin):
 
             # the extractfile and extract functions in tarfile does not work properly,
             # so for now we use extractall and rename the file afterwards
-            destsrc = os.path.join(path, os.path.basename(src))
 
-            tar.extractall(path=path)
+            tmpdest = tempfile.mkdtemp()
+            destsrc = os.path.join(tmpdest, os.path.basename(src))
+
+            tar.extractall(path=tmpdest)
             os.rename(destsrc, dest)
+
+            import shutil
+            shutil.rmtree(tmpdest)
 
     # TODO!, implement exclude
     # TODO! implement support to copy from one container into containerObject with syntax from id1:src to dest

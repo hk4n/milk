@@ -54,6 +54,9 @@ class Milk:
         # verify the config version
         try:
             if self.configVersion:
+                with MilkBase() as m:
+                    m.add_global("milk", {"config": {"version": self.configVersion}})
+
                 pass  # TODO! handle the config version properly
         except AttributeError:
             raise NoConfigVersionException()
