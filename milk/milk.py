@@ -8,8 +8,13 @@ from .milktemplate import MilkTemplate
 from .pluginloader import PluginLoader
 
 
+class MilkExceptions:
+    supress = 100
+    expose = 200
+
+
 class Milk:
-    def __init__(self, arguments=None, config=None, loggingLevel=logging.INFO):
+    def __init__(self, arguments=None, config=None, loggingLevel=logging.INFO, exceptions=MilkExceptions.expose):
 
         # set logging level, TODO! add support for logging to file and narrow the log printing to Milk and plugins only
         logging.basicConfig(level=loggingLevel)
@@ -80,7 +85,17 @@ class Milk:
             value = self.jinja(value)
 
             # instantiate the plugin
-            plugins.get_class(key)(value)
+            try:
+                plugins.get_class(key)(config=value)
+            except Exception as e:
+                # implement cleanup
+                if exceptions == MilkExceptions.supress:
+                    print("Exception for plugin: %s config: %s" % (key, value))
+                    print("Error: %s" % e.strerror)
+                    return
+                else:
+                    print("Exception for plugin: %s config: %s" % (key, value))
+                    raise
 
     def jinja(self, item):
         """Recursivly parse the jinja2 code if any
