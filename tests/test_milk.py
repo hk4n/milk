@@ -7,6 +7,34 @@ import os
 # @pytest.mark.skip(reason="no way of currently testing this")
 
 
+def test_build_image():
+    config = '''
+- version: 1
+
+- image:
+    build:
+      tag: "ping:test_version"
+      dockerfile: ./tests/Dockerfile.ping
+      path: ./tests/
+
+- container:
+    name: buildtest
+    image: "ping:test_version"
+    command: ["ping", "-c", "5", "localhost"]
+
+- follow:
+    name: buildtest
+
+- remove:
+    name: buildtest
+
+- image:
+    remove: "ping:test_version"
+    '''
+
+    Milk(arguments=[], config=config)
+
+
 def test_version_config(capfd):
     config = '''
 - version: 1
