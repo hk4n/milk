@@ -1,4 +1,5 @@
 import os
+import inspect
 import sys
 import importlib
 import logging
@@ -26,10 +27,10 @@ class PluginLoader():
         for key in dir(current_module):
             cls = getattr(current_module, key)
 
-            if key == "Plugin":
+            if key == "Plugin" or not inspect.isclass(cls):
                 continue
 
-            if isinstance(cls, type(Plugin)):
+            if issubclass(cls, Plugin):
                 classes[key] = cls
                 logging.debug("loaded plugin '%s'" % key)
 
