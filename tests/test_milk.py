@@ -7,7 +7,7 @@ import os
 # @pytest.mark.skip(reason="no way of currently testing this")
 
 
-def test_build_image():
+def test_build_image(capfd):
     config = '''
 - version: 1
 
@@ -30,9 +30,12 @@ def test_build_image():
 
 - image:
     remove: "ping:test_version"
+    noprune: False
+    force: True
     '''
 
     Milk(arguments=[], config=config)
+    out, err = capfd.readouterr()
 
 
 def test_version_config(capfd):
