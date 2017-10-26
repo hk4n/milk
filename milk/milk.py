@@ -39,11 +39,11 @@ class Milk:
                         self.parsed = yaml.load(f.read())
 
                 else:
-                    print("No config file found")
+                    logging.error("No config file found")
                     sys.exit(1)
 
             except IOError as e:
-                print("Error: '%s' (%s)" % (e.strerror, parser.args.config))
+                logging.error("Error: '%s' (%s)" % (e.strerror, parser.args.config))
                 sys.exit(1)
 
         # check for arguments and version config
@@ -90,11 +90,11 @@ class Milk:
             except Exception as e:
                 # implement cleanup
                 if exceptions == MilkExceptions.supress:
-                    print("Exception for plugin: %s config: %s" % (key, value))
-                    print("Error: %s" % e.strerror)
+                    logging.info("Exception for plugin: %s config: %s" % (key, value))
+                    logging.info("Error: %s" % e.strerror)
                     return
                 else:
-                    print("Exception for plugin: %s config: %s" % (key, value))
+                    logging.info("Exception for plugin: %s config: %s" % (key, value))
                     raise
 
     def jinja(self, item):
