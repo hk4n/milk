@@ -7,6 +7,60 @@ import os
 # @pytest.mark.skip(reason="no way of currently testing this")
 
 
+def test_create_assign_remove_network(capfd):
+    config = '''
+- version: 1
+
+- network:
+    create: my_network
+    driver: bridge
+
+- container:
+    name: test
+    image: ping
+    command: "sleep 300"
+    detach: True
+
+    advanced:
+        network: my_network
+
+- debug:
+    text: "<test>{{ test.inspect.NetworkSettings.Networks.my_network.Gateway }}</test>"
+
+- container:
+    name: test1
+    image: ping
+    command: "sleep 300"
+    detach: True
+
+    advanced:
+        network: my_network
+
+- debug:
+    text: "<test1>{{ test1.inspect.NetworkSettings.Networks.my_network.Gateway }}</test1>"
+
+- remove:
+    name: test
+    force: true
+
+- remove:
+    name: test1
+    force: true
+
+- network:
+    remove: my_network
+    '''
+
+    Milk(arguments=[], config=config)
+    out, err = capfd.readouterr()
+
+    import re
+    test = re.search('<test>(.+)</test>', out).group(1)
+    test1 = re.search('<test1>(.+)</test1>', out).group(1)
+
+    assert test == test1
+
+
 def test_build_image(capfd):
     config = '''
 - version: 1

@@ -45,9 +45,21 @@ class container(Plugin):
 
         # wait for ipadress to be assigned
         self.inspect = self.containerObject.attrs
-        while self.inspect["NetworkSettings"]["IPAddress"] == '':
+        network = None
+        try:
+            network = config["advanced"]["network"]
+        except KeyError:
+            pass
+
+        while self.getIPAdress(network) == '':
             self.containerObject.reload()
             self.inspect = self.containerObject.attrs
+
+    def getIPAdress(self, network):
+        if network:
+            return self.inspect["NetworkSettings"]["Networks"][network]["IPAddress"]
+
+        return self.inspect["NetworkSettings"]["IPAddress"]
 
     def run(self, image, command=None, **kwargs):
 
