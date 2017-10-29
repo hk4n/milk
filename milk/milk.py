@@ -17,7 +17,7 @@ class Milk:
     def __init__(self, arguments=None, config=None, loggingLevel=logging.INFO, exceptions=MilkExceptions.expose):
 
         # set logging level, TODO! add support for logging to file and narrow the log printing to Milk and plugins only
-        logging.basicConfig(level=loggingLevel)
+        logging.basicConfig(format='%(message)s', level=loggingLevel)
 
         with MilkBase() as m:
             m.initialize()
@@ -32,19 +32,18 @@ class Milk:
         if config:
             self.parsed = yaml.load(config)
         else:
-            try:
                 if os.path.isfile(parser.args.config):
 
-                    with open(parser.args.config, "r") as f:
-                        self.parsed = yaml.load(f.read())
+                    try:
+                        with open(parser.args.config, "r") as f:
+                            self.parsed = yaml.load(f.read())
+                    except IOError as e:
+                        print("Error: '%s' (%s)" % (e, parser.args.config))
+                        sys.exit(1)
 
                 else:
-                    logging.error("No config file found")
+                    print("No config file found")
                     sys.exit(1)
-
-            except IOError as e:
-                logging.error("Error: '%s' (%s)" % (e.strerror, parser.args.config))
-                sys.exit(1)
 
         # check for arguments and version config
         for item in list(self.parsed):
@@ -90,11 +89,11 @@ class Milk:
             except Exception as e:
                 # implement cleanup
                 if exceptions == MilkExceptions.supress:
-                    logging.info("Exception for plugin: %s config: %s" % (key, value))
-                    logging.info("Error: %s" % e.strerror)
+                    logging.debug("Exception for plugin: %s config: %s" % (key, value))
+                    logging.info("Error: %s" % e)
                     return
                 else:
-                    logging.info("Exception for plugin: %s config: %s" % (key, value))
+                    logging.debug("Exception for plugin: %s config: %s" % (key, value))
                     raise
 
     def jinja(self, item):
