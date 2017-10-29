@@ -28,11 +28,16 @@ ENV PY36 3.6.1
 RUN pyenv install ${PY27}
 RUN pyenv install ${PY36}
 
+COPY test_requirements.txt /
+COPY requirements.txt /
+
 RUN pyenv local ${PY27} \
     && pip install --upgrade \
         setuptools \
         pip \
         tox \
+    && pip install -r /test_requirements.txt \
+    && pip install -r /requirements.txt \
     && pyenv local --unset
 
 RUN pyenv local ${PY36} \
@@ -40,13 +45,14 @@ RUN pyenv local ${PY36} \
         setuptools \
         pip \
         tox \
+    && pip install -r /test_requirements.txt \
+    && pip install -r /requirements.txt \
     && pyenv local --unset
 
 
 RUN pyenv local ${PY27} ${PY36}
 
-COPY . /src/
-
 WORKDIR /src
+COPY . /src
 
-ENTRYPOINT ["tox"]
+ENTRYPOINT ["tox", "-v"]

@@ -18,6 +18,12 @@ class MilkBase:
 
             self.milkglobals[key] = value
 
+    def get_milk_config(self, key):
+        pass
+
+    def update_milk_config(self, key):
+        pass
+
     def get_global(self, key):
 
         try:

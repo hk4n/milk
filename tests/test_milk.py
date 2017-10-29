@@ -1,10 +1,63 @@
 from milk.milk import Milk
+from milk.milk import MilkExceptions
 
 import os
+import sys
+import pytest
+import mock
 
 # to disable tests use this:
-# import pytest
 # @pytest.mark.skip(reason="no way of currently testing this")
+
+
+def test_supress(capfd):
+    config = '''
+- version: 1
+
+- debug:
+    '''
+
+    Milk(arguments=[], config=config, exceptions=MilkExceptions.supress)
+
+    out, err = capfd.readouterr()
+    assert "missing options 'variable' or 'text'" in err
+
+
+def test_no_config_file(capfd):
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        Milk(arguments=["config", "mini.conf"], exceptions=MilkExceptions.supress)
+        assert pytest_wrapped_e.value.code == 1
+
+    out, err = capfd.readouterr()
+    assert "No config file found" in out
+
+
+def test_io_error_config_file_branch(capfd):
+
+    if sys.version_info.major < 3:
+        open_name = '__builtin__.open'
+    else:
+        open_name = 'builtins.open'
+
+    with mock.patch(open_name) as mock_open:
+        mock_open.side_effect = IOError("Mocked open IOError")
+        with pytest.raises(SystemExit) as pytest_wrapped_e:
+            filename = os.path.join(os.getcwd(), "tests/mini_debug.conf")
+            Milk(arguments=["--config", filename])
+            assert pytest_wrapped_e.value.code == 1
+    out, err = capfd.readouterr()
+    assert "Mocked open IOError" in out
+
+
+def test_config_file(capfd):
+
+    filename = os.path.join(os.getcwd(), "tests/mini_debug.conf")
+
+    Milk(arguments=["--config", filename])
+
+    out, err = capfd.readouterr()
+    assert "hello world" in out
 
 
 def test_create_assign_remove_network(capfd):
@@ -131,7 +184,7 @@ def test_copy_from_host_to_from_from_to_to_to_to_host():
 
 - copy:
     src: to:/tmp/from.txt
-    dest: tests/from_to.txt
+    dest: /tmp/tests/from_to.txt
 
 - remove:
     name: from
@@ -145,11 +198,11 @@ def test_copy_from_host_to_from_from_to_to_to_to_host():
 
     Milk(arguments=[], config=config)
 
-    assert os.path.isfile("tests/from_to.txt")
+    assert os.path.isfile("/tmp/tests/from_to.txt")
 
     # compare file content
     import filecmp
-    assert filecmp.cmp("tests/from_to.txt", "tests/from.txt", shallow=False)
+    assert filecmp.cmp("/tmp/tests/from_to.txt", "tests/from.txt", shallow=False)
 
 
 def test_short_arguments(capfd):
@@ -261,7 +314,7 @@ def test_copy_single_file_from_container(capfd):
 
 - copy:
     src: test:/tmp/from.txt
-    dest: tests/tmp/test.txt
+    dest: /tmp/tests/tmp/test.txt
 
 - remove:
     name: test
@@ -277,4 +330,4 @@ def test_copy_single_file_from_container(capfd):
 
     # compare file content
     import filecmp
-    assert filecmp.cmp("tests/tmp/test.txt", "tests/from.txt", shallow=False)
+    assert filecmp.cmp("/tmp/tests/tmp/test.txt", "tests/from.txt", shallow=False)

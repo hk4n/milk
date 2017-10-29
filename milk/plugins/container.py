@@ -61,13 +61,6 @@ class container(Plugin):
 
         return self.inspect["NetworkSettings"]["IPAddress"]
 
-    def run(self, image, command=None, **kwargs):
-
-        if "detach" in kwargs and kwargs["detach"]:
-            logging.debug("running container detached!")
-
-        self.client.containers.run(image, command, **kwargs)
-
     def start(self):
         return self.containerObject.start()
 

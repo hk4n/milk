@@ -5,6 +5,9 @@ import sys
 class debug(Plugin):
     def __init__(self, config):
 
+        if config is None:
+            raise Exception("missing options 'variable' or 'text': ")
+
         out = ""
         if "verbose" in config and "variable" in config:
             out += "%s: type: %s\n" % (config["variable"], type(self.get_global(config["variable"])))
@@ -18,6 +21,8 @@ class debug(Plugin):
 
         elif "text" in config:
             out += "%s" % config["text"]
+        else:
+            raise Exception("missing options 'variable' or 'text': ")
 
         sys.stdout.write(out)
         sys.stdout.write("\n")
