@@ -1,0 +1,12 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: building
+          command:  make build
+      - run:
+          name: testing
+          command: make test
