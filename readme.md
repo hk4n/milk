@@ -2,7 +2,7 @@
 ====
 ### *One more automation tool for running containers* ###
 
-## Table of content ##
+## Table of content
 
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -30,12 +30,12 @@
 - Jinja2
 
 
-## Requirements ##
+## Requirements
 - python >=2.7.13 or >=3.6.1
 - pip >=9.0
 - docker >2.12
 
-## Installation ##
+## Installation
 1. Clone the repository
 
 2. Run the pip command bellow from inside the repository folder
@@ -44,7 +44,7 @@ $ pip install .
 ~~~
 3. you are done
 
-## Basic example ##
+## Basic example
 Save the content below to test.yml
 ~~~yaml
 - version: 1
@@ -66,10 +66,10 @@ $ milk -f test.yml
 hello world
 ~~~
 
-## Image ##
+## Image
 The build plugin support basic building and removal of images.
 
-#### Build example ####
+#### Build example
 ~~~yaml
 - image:
     build:
@@ -78,7 +78,7 @@ The build plugin support basic building and removal of images.
       path: ./path/to/
 ~~~
 
-#### Remove example ####
+#### Remove example
 ~~~yaml
 - image:
     remove: "my_awesome/image:1.0"
@@ -86,7 +86,7 @@ The build plugin support basic building and removal of images.
     force: True
 ~~~
 
-## Container ##
+## Container
 The container plugin has four regular config options where two is mandatory. The advanced section is a direct translation of the [dockerpy](https://docker-py.readthedocs.io/en/stable/) clients create functions arguments but few are tested, see the [advanced](#advanced) section for more information.
 - **name:** name of container inside milk, mandatory
 - **image:** name of image, mandatory
@@ -95,7 +95,7 @@ The container plugin has four regular config options where two is mandatory. The
 
 See the [basic example](#basic-example) how to start a simple container.
 
-#### advanced ####
+#### Advanced
 There are few settings that are tested, network, working_dir and extra_hosts.
 All other arguemnts from [dockerpy](https://docker-py.readthedocs.io/en/stable/) clients create function can work if properly translated to yaml.
 
@@ -128,7 +128,7 @@ The extra_hosts settings is built up by a yaml list of *ip:hostname*, see exampl
 ~~~
 
 
-## Copy ##
+## Copy
 The copy plugin supports copying between host and container or container to container.
 
 Basic regular expression are supported when coping from host to container. The syntax is the same as py36 glob module.
@@ -138,7 +138,7 @@ copy:
   dest: /path/on/dest/
 ~~~
 
-#### Before start ####
+#### Before start
 This will copy from the host to a container before the container have started
 ~~~yaml
 - container:
@@ -149,34 +149,34 @@ This will copy from the host to a container before the container have started
       dest: folder/file
 ~~~
 
-#### From host to container ####
+#### From host to container
 ~~~yaml
 - copy:
     src: folder/file
     dest: id:folder/file
 ~~~
 
-#### From container to host ####
+#### From container to host
 ~~~yaml
 - copy:
     src: id:folder/file
     dest: folder/file
 ~~~
 
-#### From container to container ####
+#### From container to container
 ~~~yaml
 - copy:
     src: id1:folder/file
     dest: id2:folder/file
 ~~~
 
-## Follow ##
-## Remove ##
-## Network ##
-#### Create ####
-#### Add to container ####
-##### Remove ####
-## Debug ##
-## Variables ##
-## Arguments ##
-## Jinja2 ##
+## Follow
+## Remove
+## Network
+#### Create
+#### Add to container
+#### Remove
+## Debug
+## Variables
+## Arguments
+## Jinja2
