@@ -1,6 +1,6 @@
 **Milk**
 ====
-### *One more automation tool for running containers* ###
+### *A automation tool for running containers in a non traditional way*
 
 ## Table of content
 
@@ -171,11 +171,46 @@ This will copy from the host to a container before the container have started
 ~~~
 
 ## Follow
+Follow is like tail -f on the containers stdout. You can only follow one container at the time.
+
+~~~yaml
+- follow:
+    name: mycontainer
+~~~
+
 ## Remove
+Remove is used to remove an container after or when it is running, You can use the force option to forcefully kill and remove and running container.  
+
+~~~yaml
+- remove:
+    name: mycontainer
+    force: True
+~~~
+
 ## Network
+The network plugin is used to create and remove networks. You can specify advanced options but they are right now untested.
+
 #### Create
+~~~yaml
+- network:
+    create:
+      name: my_network
+      driver: bridge
+~~~
 #### Add to container
+~~~yaml
+- container:
+    advanced:
+      network: my_network
+~~~
+
 #### Remove
+~~~yaml
+- network:
+    remove:
+      name: my_network
+~~~
+
 ## Debug
 ## Variables
 ## Arguments
