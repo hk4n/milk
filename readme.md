@@ -7,27 +7,17 @@
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Basic example](#basic-example)
+
+#### Plugins
 - [Image](#image)
- - build example
- - remove example
 - [Container](#container)
- - container basics
- - advanced
-- Copy
- - Before start
- - From host to container
- - From container to host
- - From container to container
-- Follow
-- Remove
-- Network
- - Create
- - Add to container
- - Remove
-- Debug
-- Variables
-- Arguments
-- Jinja2
+- [Copy](#copy)
+- [Follow](#follow)
+- [Remove](#remove)
+- [Network](#network)
+- [Debug](#debug)
+- [Variables](#variables)
+- [Arguments](#arguments)
 
 
 ## Requirements
