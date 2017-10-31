@@ -212,6 +212,70 @@ The network plugin is used to create and remove networks. You can specify advanc
 ~~~
 
 ## Debug
+Debug is used to print various texts and variable content to stdout
+There are two types of debug settings:
+#### variable
+- **pretty:** Tries to format the variables data.
+- **verbose:** Writes the variables data type.
+
+~~~yaml
+- debug:
+    variable: myvar
+
+- debug:
+    variable: myvar
+    pretty: True
+
+- debug:
+    variable: myvar
+    verbose: True
+
+~~~
+#### text
+
+~~~yaml
+- debug:
+    text: "My awesome debug text printout"
+~~~
+
 ## Variables
+Variables are used feed other plugins with information with the use the [Jinja2](http://jinja.pocoo.org/docs/2.9/templates/) format. The Jinja parsing are executed per plugin configuration, so make sure you order the configuration correctly.
+
+~~~yaml
+- variables:
+    myvar1: "First variable text"
+    myvar2: "Second variable text"
+
+- debug:
+    text: "{{ myvar1 }}"
+~~~
+
 ## Arguments
-## Jinja2
+The argument plugin provides the support to have custom arguments to configuration. The values from these arguments are stored in the same way as the in the variables plugin.
+
+The arguments are taken care of before the parsing and execution of the other plugins and it doesn't matter where in the config file they are located, but for readability having them in the top of the file helps.
+
+- **long_option:** conditional optional when short_option is used.
+- **short_option:** conditional optional when long_option is used.
+- **dest:** optional
+- **default:** optional
+- **required:** optional
+
+~~~yaml
+- argument:
+    long_option: --example
+    short_option: -e
+    dest: example
+    default: "hello world"
+    required: False
+
+- debug:
+    text: "{{ example }}"
+~~~
+
+~~~
+$ milk -f myexample.conf --example
+hello world
+$ milk -f myexample.conf --example 'hello universe'
+hello universe
+~~~
