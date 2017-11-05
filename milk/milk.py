@@ -26,14 +26,16 @@ class Milk:
         parser = MilkArguments(arguments=arguments)
 
         # load plugins from default location
-        plugins = PluginLoader(os.path.join(os.path.dirname(__file__), "plugins"), loggingLevel=loggingLevel)
+        defaultPluginDir = os.path.join(os.path.dirname(__file__), "plugins")
+        plugins = PluginLoader(defaultPluginDir, loggingLevel=loggingLevel)
 
         # parse the yaml config file
         if config:
             self.parsed = yaml.load(config)
+            configDir = None
         else:
                 if os.path.isfile(parser.args.config):
-
+                    configDir = os.path.dirname(parser.args.config)
                     try:
                         with open(parser.args.config, "r") as f:
                             self.parsed = yaml.load(f.read())
@@ -68,12 +70,17 @@ class Milk:
         # parse user defined arguments
         parser.parse_args()
 
-        # TODO! load plugins from current working dir
+        # load custom user plugins
+        self.load_plugins_from_working_dir(plugins)
 
-        # load plugins from supplied path in config file
-        for item in self.parsed:
-            if "config" in item and "plugin_path" in item:
-                plugins.load_plugins(item["plugin_path"])
+        self.load_plugins_from_config_file_location(configDir, plugins)
+
+        self.load_plugins_from_config(plugins)
+
+        # remove config
+        for item in list(self.parsed):
+            if "config" in item:
+                self.parsed.remove(item)
                 break
 
         # execute the flow
@@ -95,6 +102,40 @@ class Milk:
                 else:
                     logging.debug("Exception for plugin: %s config: %s" % (key, value))
                     raise
+
+    def load_plugins_from_working_dir(self, plugins):
+        workingDir = os.getcwd()
+        pluginDir = os.path.join(workingDir, "plugins")
+        if os.path.isdir(pluginDir):
+            plugins.load_plugins(pluginDir)
+
+    def load_plugins_from_config_file_location(self, configDir, plugins):
+        if configDir:
+            pluginDir = os.path.join(configDir, "plugins")
+            if os.path.isdir(pluginDir):
+                plugins.load_plugins(pluginDir)
+
+    def load_plugins_from_config(self, plugins):
+        def makeAbs(location):
+            if os.path.isabs(location):
+                return location
+            else:
+                absLocation = os.path.join(os.getcwd(), location)
+                if os.path.isdir(absLocation):
+                    return absLocation
+                else:
+                    raise IOError("Plugin directory does not exist")
+
+        for item in list(self.parsed):
+            if "config" in item:
+                if "plugin_locations" in item["config"]:
+                    pluginLocations = item["config"]["plugin_locations"]
+                    if type(pluginLocations) is list:
+                        for loc in pluginLocations:
+                            plugins.load_plugins(makeAbs(loc))
+                    else:
+                        plugins.load_plugins(makeAbs(pluginLocations))
+                    break
 
     def jinja(self, item):
         """Recursivly parse the jinja2 code if any
