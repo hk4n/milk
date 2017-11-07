@@ -1,6 +1,14 @@
 **Milk**
 ====
-### *A automation tool for running containers in a non traditional way*
+### *An automation tool for running containers in a non traditional way*
+
+The traditional way to run containers is to have images prepared with everything and just start the containers up with a bare minimum of arguments.
+
+But there are cases where configuration files, test packages etc. needs to get in to the container during create or runtime. This is not that easy to solve without some kind of scripting.
+
+Milk solves this by enables copying of files between the create and start of the container with the help of a simple yaml configuration syntax, see the [Copy](#copy) section for more details.
+
+Now Milk is so much more than just copying files, it has borrowed ideas from other well known provisioning tools and can be used to simplify the task to execute complex test flows within containers, the combinations are endless and it is just your imagination that sets the limits of what Milk can do. You can see the list of supported features in the plugin list below and if there are no plugin that supports your ideas, it is easy to create your own.
 
 ## Table of content
 
