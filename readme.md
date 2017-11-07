@@ -15,6 +15,7 @@ Now Milk is so much more than just copying files, it has borrowed ideas from oth
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Basic example](#basic-example)
+- [Plugin development](#plugin-development)
 
 #### Plugins
 - [Image](#image)
@@ -62,6 +63,74 @@ Run the command:
 ~~~
 $ milk -f test.yml
 hello world
+~~~
+
+## Plugin development
+The custom plugins that you develop should be placed inside a *plugins* folder in either the working folder of milk or the location of your configuration file.
+
+~~~sh
+# this will load both the my_working_dir_plugin and the my_plugin
+
+# /working_dir/plugins
+#   my_working_dir_plugin.py
+
+# /working_dir/my_plugin_example/plugins
+#   my_plugin.py
+
+$ cd /working_dir/
+$ milk -f my_plugin_example/my_config.conf
+~~~
+
+#### Simple plugin example
+This plugin code will just pretty print the parsed configuration from the supplied configuration file.
+~~~python
+from milk.plugins import Plugin
+from pprint import pprint
+
+class my_plugin(Plugin):
+  def __init__(self, config):
+    pprint(config)
+~~~
+configuration file
+~~~yaml
+- version: 1
+
+- my_plugin:
+    my_first_setting: "hello"
+    my_second_setting: "world"
+~~~
+
+#### Plugin load order and settings
+The plugins load order are:
+1. Default plugins installed with Milk
+2. plugins located in:
+~~~
+<working dir>/plugins
+~~~
+3. plugins located in:
+~~~
+ <config file location>/plugins
+~~~
+4. plugin_locations configuration in the config file either as a string or as a list. If the location is and relative path it will start from the current working directory.
+
+##### Plugin loading configuration in the config file
+~~~yaml
+# string version
+- version: 1
+
+- config:
+    plugin_locations: "my/awesome/plugins/"
+
+~~~
+~~~yaml
+# list version
+- version: 1
+
+- config:
+    plugin_locations:
+      - "/my/awesome/plugin/"
+      - "/my/second/awesome/plugin/"
+
 ~~~
 
 ## Image
@@ -177,7 +246,7 @@ Follow is like tail -f on the containers stdout. You can only follow one contain
 ~~~
 
 ## Remove
-Remove is used to remove an container after or when it is running, You can use the force option to forcefully kill and remove and running container.  
+Remove is used to remove an container after or when it is running, You can use the force option to forcefully kill and remove and running container.
 
 ~~~yaml
 - remove:
