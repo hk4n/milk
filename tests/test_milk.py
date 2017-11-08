@@ -69,7 +69,7 @@ def test_create_assign_remove_network(capfd):
     driver: bridge
 
 - container:
-    name: test
+    id: test
     image: ping
     command: "sleep 300"
     detach: True
@@ -81,7 +81,7 @@ def test_create_assign_remove_network(capfd):
     text: "<test>{{ test.inspect.NetworkSettings.Networks.my_network.Gateway }}</test>"
 
 - container:
-    name: test1
+    id: test1
     image: ping
     command: "sleep 300"
     detach: True
@@ -93,11 +93,11 @@ def test_create_assign_remove_network(capfd):
     text: "<test1>{{ test1.inspect.NetworkSettings.Networks.my_network.Gateway }}</test1>"
 
 - remove:
-    name: test
+    id: test
     force: true
 
 - remove:
-    name: test1
+    id: test1
     force: true
 
 - network:
@@ -125,15 +125,15 @@ def test_build_image(capfd):
       path: ./tests/
 
 - container:
-    name: buildtest
+    id: buildtest
     image: "ping:test_version"
     command: ["ping", "-c", "5", "localhost"]
 
 - follow:
-    name: buildtest
+    id: buildtest
 
 - remove:
-    name: buildtest
+    id: buildtest
 
 - image:
     remove: "ping:test_version"
@@ -163,13 +163,13 @@ def test_copy_from_host_to_from_from_to_to_to_to_host():
 - version: 1
 
 - container:
-    name: to
+    id: to
     image: "ubuntu:16.04"
     command: "sleep 300"
     detach: True
 
 - container:
-    name: from
+    id: from
     image: "ping"
     command: "sleep 300"
     detach: True
@@ -187,11 +187,11 @@ def test_copy_from_host_to_from_from_to_to_to_to_host():
     dest: /tmp/tests/from_to.txt
 
 - remove:
-    name: from
+    id: from
     force: True
 
 - remove:
-    name: to
+    id: to
     force: True
 
     '''
@@ -266,13 +266,13 @@ def test_ping_from_container(capfd):
     required: False
 
 - container:
-    name: to
+    id: to
     image: "ubuntu:16.04"
     command: "sleep 30"
     detach: True
 
 - container:
-    name: from
+    id: from
     image: "ping"
     command: ["ping", "-c", "5", "to"]
 
@@ -283,13 +283,13 @@ def test_ping_from_container(capfd):
       working_dir: /
 
 - follow:
-    name: from
+    id: from
 
 - remove:
-    name: from
+    id: from
 
 - remove:
-    name: to
+    id: to
     force: True
     '''
     Milk(arguments=["--example", "10.0.0.1"], config=config)
@@ -302,7 +302,7 @@ def test_copy_single_file_from_container(capfd):
     config = '''
 - version: 1
 - container:
-    name: test
+    id: test
     image: ping
     command: 'ls -la /tmp/'
     copy:
@@ -310,14 +310,14 @@ def test_copy_single_file_from_container(capfd):
       dest: /tmp
 
 - follow:
-    name: test
+    id: test
 
 - copy:
     src: test:/tmp/from.txt
     dest: /tmp/tests/tmp/test.txt
 
 - remove:
-    name: test
+    id: test
 
     '''
 

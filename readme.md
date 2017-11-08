@@ -50,14 +50,14 @@ Save the content below to test.yml
 
 - container:
     image: busybox
-    name: test
+    id: test
     command: ["echo", "hello world"]
 
 - follow:
-  name: test
+  id: test
 
 - remove:
-  name: test
+  id: test
 ~~~
 Run the command:
 ~~~
@@ -154,11 +154,12 @@ The build plugin support basic building and removal of images.
 ~~~
 
 ## Container
-The container plugin has four regular config options where two is mandatory. The advanced section is a direct translation of the [dockerpy](https://docker-py.readthedocs.io/en/stable/) clients create functions arguments but few are tested, see the [advanced](#advanced) section for more information.
-- **name:** name of container inside milk, mandatory
+The container plugin has five regular config options where two is mandatory. The advanced section is a direct translation of the [dockerpy](https://docker-py.readthedocs.io/en/stable/) clients create functions arguments but few are tested, see the [advanced](#advanced) section for more information.
+- **id:** name of container within milk, mandatory
 - **image:** name of image, mandatory
 - **command:** command to execute, does not override entrypoint settings, optional
 - **detach:** set to True to have the container run in detached mode
+- **name:** name of container in docker
 
 See the [basic example](#basic-example) how to start a simple container.
 
@@ -210,7 +211,7 @@ This will copy from the host to a container before the container have started
 ~~~yaml
 - container:
     image: busybox
-    name: test
+    id: test
     copy:
       src: folder/file
       dest: folder/file
@@ -242,7 +243,7 @@ Follow is like tail -f on the containers stdout. You can only follow one contain
 
 ~~~yaml
 - follow:
-    name: mycontainer
+    id: mycontainer
 ~~~
 
 ## Remove
@@ -250,7 +251,7 @@ Remove is used to remove an container after or when it is running, You can use t
 
 ~~~yaml
 - remove:
-    name: mycontainer
+    id: mycontainer
     force: True
 ~~~
 

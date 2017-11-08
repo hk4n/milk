@@ -15,7 +15,10 @@ class container(Plugin):
         if self.client is None:
             self.client = docker.from_env(version='auto')
 
-        self.name = config["name"]
+        if "id" not in config:
+            raise Exception("'id' is missing")
+        else:
+            self.id = config["id"]
 
         if "image" not in config:
             raise Exception("'image' is missing")
@@ -24,20 +27,20 @@ class container(Plugin):
             config["advanced"] = {}
 
         # adding optional settings to advanced
-        for arg in ["command", "detach"]:
+        for arg in ["command", "detach", "name"]:
             if arg in config:
                 config["advanced"][arg] = config[arg]
 
         # create the container
         self.containerObject = self.create(config["image"], **config["advanced"])
-        self.add_global(self.name, self)
+        self.add_global(self.id, self)
 
         if "copy" in config:
             if ':' in config["copy"]["dest"]:
                 raise Exception("Currently container copy is only supported in src")
 
             if ':' not in config["copy"]["dest"]:
-                config["copy"]["dest"] = "%s:%s" % (self.name, config["copy"]["dest"])
+                config["copy"]["dest"] = "%s:%s" % (self.id, config["copy"]["dest"])
 
             copy(config["copy"])
 
@@ -70,11 +73,11 @@ class container(Plugin):
 
 class follow(Plugin):
     def __init__(self, config):
-        self.follow(config["name"])
+        self.follow(config["id"])
 
-    def follow(self, name):
+    def follow(self, cid):
         import sys
-        for line in self.milkglobals[name].containerObject.logs(stream=True, follow=True):
+        for line in self.milkglobals[cid].containerObject.logs(stream=True, follow=True):
             sys.stdout.writelines(line.decode("utf-8"))
             sys.stdout.flush()
 
@@ -85,10 +88,10 @@ class remove(Plugin):
 
     def remove(self, config):
         if type(config) is dict:
-            name = config["name"]
-            logging.debug("removing: %s" % name)
-            del config["name"]
-            return self.milkglobals[name].containerObject.remove(**config)
+            cid = config["id"]
+            logging.debug("removing: %s" % cid)
+            del config["id"]
+            return self.milkglobals[cid].containerObject.remove(**config)
 
 
 class copy(Plugin):
