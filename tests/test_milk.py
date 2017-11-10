@@ -164,7 +164,7 @@ def test_copy_from_host_to_from_from_to_to_to_to_host():
 
 - container:
     id: to
-    image: "ubuntu:16.04"
+    image: "ping"
     command: "sleep 300"
     detach: True
 
@@ -267,7 +267,7 @@ def test_ping_from_container(capfd):
 
 - container:
     id: to
-    image: "ubuntu:16.04"
+    image: "ping"
     command: "sleep 30"
     detach: True
 
