@@ -160,8 +160,21 @@ The container plugin has five regular config options where two is mandatory. The
 - **command:** command to execute, does not override entrypoint settings, optional
 - **detach:** set to True to have the container run in detached mode
 - **name:** name of container in docker
+- **pull:** override the default pull strategy, see the [pull strategy](#pull-strategy)
 
 See the [basic example](#basic-example) how to start a simple container.
+
+#### Pull strategy
+The are three pull strategies that can be applied:
+- **auto** - is the *default* and will try to pull if the images does not exist on the server
+- **always** - as it says alwys try to pull a image from the registry
+- **disabled** - do not pull any images
+
+Usage:
+~~~yaml
+- container:
+    pull: always
+~~~
 
 #### Advanced
 There are few settings that are tested, network, working_dir and extra_hosts.
