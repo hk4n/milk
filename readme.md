@@ -167,7 +167,7 @@ See the [basic example](#basic-example) how to start a simple container.
 #### Pull strategy
 The are three pull strategies that can be applied:
 - **auto** - is the *default* and will try to pull if the images does not exist on the server
-- **always** - as it says alwys try to pull a image from the registry
+- **always** - as it says always try to pull a image from the registry
 - **disabled** - do not pull any images
 
 Usage:
