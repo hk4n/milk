@@ -331,3 +331,83 @@ def test_copy_single_file_from_container(capfd):
     # compare file content
     import filecmp
     assert filecmp.cmp("/tmp/tests/tmp/test.txt", "tests/from.txt", shallow=False)
+
+
+def test_always_pull_image_before_create(capfd):
+    config = '''
+- version: 1
+
+- container:
+    id: test
+    image: 'busybox:1.27.2'
+    command: 'echo hello world'
+    pull: always
+
+- follow:
+    id: test
+
+- remove:
+    id: test
+
+- image:
+    remove: 'busybox:1.27.2'
+    '''
+
+    Milk(arguments=[], config=config)
+
+    out, err = capfd.readouterr()
+
+    # check if the file was copied to the container
+    assert "hello world" in out
+
+
+def test_auto_pull_image_before_create(capfd):
+    config = '''
+- version: 1
+
+- container:
+    id: test
+    image: 'busybox:1.27.2'
+    command: 'echo hello world'
+
+- follow:
+    id: test
+
+- remove:
+    id: test
+
+- image:
+    remove: 'busybox:1.27.2'
+    '''
+
+    Milk(arguments=[], config=config)
+
+    out, err = capfd.readouterr()
+
+    # check if the file was copied to the container
+    assert "hello world" in out
+
+
+def test_disabled_pull_image_before_create(capfd):
+    config = '''
+- version: 1
+
+- container:
+    id: test
+    image: 'ping'
+    command: 'echo hello world'
+    pull: disabled
+
+- follow:
+    id: test
+
+- remove:
+    id: test
+    '''
+
+    Milk(arguments=[], config=config)
+
+    out, err = capfd.readouterr()
+
+    # check if the file was copied to the container
+    assert "hello world" in out

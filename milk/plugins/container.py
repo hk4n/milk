@@ -8,6 +8,15 @@ import logging
 import tempfile
 
 
+def is_in_config(config, name, value=None):
+    if name in config:
+        if value is None:
+            return True
+        elif value == config[name]:
+            return True
+    return False
+
+
 class container(Plugin):
     client = None
 
@@ -22,6 +31,19 @@ class container(Plugin):
 
         if "image" not in config:
             raise Exception("'image' is missing")
+
+        # pull - default is auto
+        if is_in_config(config, "pull", "auto") or not is_in_config(config, "pull"):
+            try:
+                self.client.images.get(config["image"])
+            except docker.errors.ImageNotFound:
+                self.client.images.pull(config["image"])
+
+        elif is_in_config(config, "pull", "always"):
+            self.client.images.pull(config["image"])
+
+        elif is_in_config(config, "pull", "disabled"):
+            pass
 
         if "advanced" not in config:
             config["advanced"] = {}
