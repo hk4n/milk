@@ -184,16 +184,16 @@ All other arguemnts from [dockerpy](https://docker-py.readthedocs.io/en/stable/)
 
 ~~~yaml
 - container:
-  advanced:
-    network: my_network
+    advanced:
+      network: my_network
 ~~~
 
 **working_dir**
 
 ~~~yaml
 - container:
-  advanced:
-    working_dir: /container/folder
+    advanced:
+      working_dir: /container/folder
 ~~~
 
 **extra_hosts**
@@ -202,10 +202,10 @@ The extra_hosts settings is built up by a yaml list of *ip:hostname*, see exampl
 
 ~~~yaml
 - container:
-  advanced:
-    extra_hosts:
-      - "192.168.0.1:www.myawesomesite.com"
-      - "192.168.0.2:helloworld"
+    advanced:
+      extra_hosts:
+        - "192.168.0.1:www.myawesomesite.com"
+        - "192.168.0.2:helloworld"
 ~~~
 
 
